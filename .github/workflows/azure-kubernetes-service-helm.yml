@@ -1,4 +1,4 @@
-name: Build and deploy an app to AKS with Helm
+name: Build and deploy
 
 on:
   push:
@@ -10,7 +10,6 @@ env:
   CONTAINER_NAME: "pychangecalc"
   RESOURCE_GROUP: "bentest-rg"
   CLUSTER_NAME: "bentest-aks"
-  CHART_PATH: "helm-charts/pychangecalc"
   CHART_OVERRIDE_PATH: "overrides/production-values.yaml"
 
 jobs:
@@ -70,23 +69,26 @@ jobs:
           admin: 'false'
           use-kubelogin: 'true'
 
-      # Runs Helm to create manifest files
-      - name: Bake deployment
-        uses: azure/k8s-bake@v2
-        with:
-          renderEngine: "helm"
-          helmChart: ${{ env.CHART_PATH }}
-          overrideFiles: ${{ env.CHART_OVERRIDE_PATH }}
-          overrides: |
-            replicas:2
-          helm-version: "latest"
-        id: bake
+      # Deploy PostgreSQL using Helm
+      - name: Deploy PostgreSQL
+        run: |
+          helm dependency update helm-charts/postgresql
+          helm upgrade --install postgresql helm-charts/postgresql --namespace default \
+            --set global.postgresql.auth.postgresqlPassword=${{ secrets.POSTGRESQL_PASSWORD }}
 
-      # Deploys application based on manifest files from previous step
-      - name: Deploy application
-        uses: Azure/k8s-deploy@v4
-        with:
-          action: deploy
-          manifests: ${{ steps.bake.outputs.manifestsBundle }}
-          images: |
-            ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }}
+      # Deploy RabbitMQ using Helm
+      - name: Deploy RabbitMQ
+        run: |
+          helm dependency update helm-charts/rabbitmq
+          helm upgrade --install rabbitmq helm-charts/rabbitmq --namespace default \
+            --set auth.username=${{ secrets.RABBITMQ_USERNAME }} \
+            --set auth.password=${{ secrets.RABBITMQ_PASSWORD }}
+
+      # Deploy pychangecalc using Helm
+      - name: Deploy pychangecalc
+        run: |
+          helm upgrade --install pychangecalc helm-charts/pychangecalc --namespace default \
+            --set image.repository=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }} \
+            --set image.tag=${{ github.sha }} \
+            --set postgresql.auth.postgresqlPassword=${{ secrets.POSTGRESQL_PASSWORD }} \
+            --values ${{ env.CHART_OVERRIDE_PATH }}

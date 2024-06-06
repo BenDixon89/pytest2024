@@ -1,0 +1,5 @@
+global:
+  postgresql:
+    auth:
+      postgresqlPassword: ""
+    database: transactions

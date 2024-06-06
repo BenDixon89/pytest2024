@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pychangecalc.fullname" . }}
+  labels:
+    app: {{ include "pychangecalc.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "pychangecalc.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "pychangecalc.name" . }}
+    spec:
+      containers:
+        - name: pychangecalc
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://postgres:{{ .Values.postgresql.auth.postgresqlPassword }}@postgresql:5432/transactions"
+            - name: RABBITMQ_URL
+              value: "rabbitmq.default.svc.cluster.local"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
