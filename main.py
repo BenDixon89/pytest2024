@@ -70,4 +70,4 @@ def calculate_change_endpoint(change_request: ChangeRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="0.0.0.0", port=80)
