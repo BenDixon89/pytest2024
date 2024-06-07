@@ -67,7 +67,7 @@ jobs:
       # Deploy PostgreSQL using Helm
       - name: Deploy PostgreSQL
         run: |
-          helm dependency build postgresql helm-charts/postgresql
+          helm dependency update postgresql helm-charts/postgresql
           helm upgrade --install postgresql helm-charts/postgresql --namespace default \
             --set global.postgresql.auth.postgresqlPassword=${{ secrets.POSTGRESQL_PASSWORD }}
 
