@@ -10,7 +10,6 @@ env:
   CONTAINER_NAME: "pychangecalc"
   RESOURCE_GROUP: "bentest-rg"
   CLUSTER_NAME: "bentest-aks"
-  CHART_OVERRIDE_PATH: "overrides/production-values.yaml"
   DOCKERHUB_USERNAME: "bendixon89"
 
 jobs:
@@ -86,5 +85,4 @@ jobs:
           helm upgrade --install pychangecalc helm-charts/pychangecalc --namespace default \
             --set image.repository=${{ env.DOCKERHUB_USERNAME }}/${{ env.CONTAINER_NAME }} \
             --set image.tag=${{ github.sha }} \
-            --set postgresql.auth.postgresqlPassword=${{ secrets.POSTGRESQL_PASSWORD }} \
-            --values ${{ env.CHART_OVERRIDE_PATH }}
+            --set postgresql.auth.postgresqlPassword=${{ secrets.POSTGRESQL_PASSWORD }}
