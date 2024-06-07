@@ -74,7 +74,7 @@ jobs:
       # Deploy RabbitMQ using Helm
       - name: Deploy RabbitMQ
         run: |
-          helm dependency update helm-charts/rabbitmq
+          helm dependency build helm-charts/rabbitmq
           helm upgrade --install rabbitmq helm-charts/rabbitmq --namespace default \
             --set auth.username=${{ secrets.RABBITMQ_USERNAME }} \
             --set auth.password=${{ secrets.RABBITMQ_PASSWORD }}

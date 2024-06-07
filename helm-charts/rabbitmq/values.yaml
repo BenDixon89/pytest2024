@@ -1088,7 +1088,7 @@ service:
   loadBalancerClass: ""
   ## @param service.loadBalancerIP Set the LoadBalancerIP
   ##
-  loadBalancerIP: ""
+  loadBalancerIP: "service.beta.kubernetes.io/azure-load-balancer-ipv4"
   ## @param service.clusterIP Kubernetes service Cluster IP
   ## e.g.:
   ## clusterIP: None
