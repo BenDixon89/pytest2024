@@ -4,5 +4,6 @@ global:
       postgresqlPassword: ""
     database: transactions
 
-service:
-  type: LoadBalancer
+primary:
+  service:
+    type: LoadBalancer

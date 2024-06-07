@@ -23,6 +23,6 @@ spec:
             - name: DATABASE_URL
               value: "postgresql://postgres:{{ .Values.postgresql.auth.postgresqlPassword }}@postgresql:5432/transactions"
             - name: RABBITMQ_URL
-              value: "rabbitmq.default.svc.cluster.local"
+              value: "rabbitmq:5672"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
