@@ -68,7 +68,7 @@ jobs:
       - name: Deploy PostgreSQL
         run: |
           helm dependency update helm-charts/postgresql
-          helm upgrade --install postgresql helm-charts/postgresql -f values.yaml --namespace default \
+          helm upgrade --install postgresql helm-charts/postgresql -f helm-charts/postgresql/values.yaml --namespace default \
             --set global.postgresql.auth.postgresqlPassword=${{ secrets.POSTGRESQL_PASSWORD }}
 
       # Deploy RabbitMQ using Helm
