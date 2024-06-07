@@ -3,3 +3,6 @@ global:
     auth:
       postgresqlPassword: ""
     database: transactions
+
+service:
+  type: LoadBalancer
