@@ -11,6 +11,7 @@ env:
   RESOURCE_GROUP: "bentest-rg"
   CLUSTER_NAME: "bentest-aks"
   CHART_OVERRIDE_PATH: "overrides/production-values.yaml"
+  DOCKERHUB_USERNAME: "bendixon89"
 
 jobs:
   buildImage:
@@ -22,18 +23,13 @@ jobs:
       # Checks out the repository this file is in
       - uses: actions/checkout@v4
 
-      # Logs in with your Azure credentials
-      - name: Azure login
-        uses: azure/login@v1.4.6
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ env.DOCKERHUB_USERNAME }}" --password-stdin
 
-      # Builds and pushes an image up to your Azure Container Registry
-      - name: Build and push image to ACR
+      - name: Build and push image to Docker Hub
         run: |
-          az acr build --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }} --registry ${{ env.AZURE_CONTAINER_REGISTRY }} -g ${{ env.RESOURCE_GROUP }} .
+          docker build -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.CONTAINER_NAME }}:${{ github.sha }} .
+          docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.CONTAINER_NAME }}:${{ github.sha }}
 
   deploy:
     permissions:
@@ -88,7 +84,7 @@ jobs:
       - name: Deploy pychangecalc
         run: |
           helm upgrade --install pychangecalc helm-charts/pychangecalc --namespace default \
-            --set image.repository=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }} \
+            --set image.repository=${{ env.DOCKERHUB_USERNAME }}/${{ env.CONTAINER_NAME }} \
             --set image.tag=${{ github.sha }} \
             --set postgresql.auth.postgresqlPassword=${{ secrets.POSTGRESQL_PASSWORD }} \
             --values ${{ env.CHART_OVERRIDE_PATH }}
