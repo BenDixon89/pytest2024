@@ -86,3 +86,9 @@ jobs:
             --set image.repository=${{ env.DOCKERHUB_USERNAME }}/${{ env.CONTAINER_NAME }} \
             --set image.tag=${{ github.sha }} \
             --set postgresql.auth.postgresqlPassword=${{ secrets.POSTGRESQL_PASSWORD }}
+
+      # Deploy Ingress using kubectl
+      - name: Deploy Ingress
+        run: |
+          kubectl apply -f deployment/ingress.yaml
+
