@@ -80,6 +80,13 @@ def setup_rabbitmq():
     except pika.exceptions.AMQPConnectionError as e:
         logger.error(f"Error connecting to RabbitMQ: {e}")
 
+# Register the startup event to start the RabbitMQ consumer
+@app.on_event("startup")
+def startup_event():
+    logger.info("Starting RabbitMQ consumer thread.")
+    rabbitmq_thread = Thread(target=setup_rabbitmq)
+    rabbitmq_thread.start()
+
 # Endpoint to test change calculation
 @app.post("/calculate-change/")
 def calculate_change_endpoint(change_request: ChangeRequest):
@@ -108,10 +115,6 @@ def health_check():
     return {"database": db_status, "rabbitmq": rabbitmq_status}
 
 if __name__ == "__main__":
-    # Start RabbitMQ consumer in a separate thread
-    rabbitmq_thread = Thread(target=setup_rabbitmq)
-    rabbitmq_thread.start()
-
     # Start FastAPI application
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=80)
