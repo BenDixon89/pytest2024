@@ -9,7 +9,7 @@ from threading import Thread
 
 app = FastAPI()
 
-DATABASE_URL = "postgresql://username:password@postgresql.default.svc.cluster.local:5432/transactions"
+DATABASE_URL = "postgresql://user:password@postgresql.default.svc.cluster.local:5432/transactions"
 RABBITMQ_URL = "amqp://guest:guest@rabbitmq.default.svc.cluster.local:5672/"
 
 # Logger setup
