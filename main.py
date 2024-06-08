@@ -44,6 +44,18 @@ def calculate_change(coin_denominations, purchase_amount, tender_amount):
             change_needed -= coin
     return change
 
+# Publish to RabbitMQ
+def publish_to_rabbitmq(queue_name, message):
+    try:
+        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
+        channel = connection.channel()
+        channel.queue_declare(queue=queue_name)
+        channel.basic_publish(exchange='', routing_key=queue_name, body=json.dumps(message))
+        connection.close()
+        logger.info(f"Message published to {queue_name}.")
+    except pika.exceptions.AMQPConnectionError as e:
+        logger.error(f"Error connecting to RabbitMQ for publishing: {e}")
+
 # RabbitMQ consumer callback
 def callback(ch, method, properties, body):
     data = json.loads(body)
@@ -64,6 +76,11 @@ def callback(ch, method, properties, body):
         cur.close()
         conn.close()
         logger.info("Transaction successfully stored in the database.")
+        
+        # Publish calculated change to RabbitMQ
+        publish_to_rabbitmq('change_returned', {
+            'change': change
+        })
     except Exception as e:
         logger.error(f"Error storing transaction in the database: {e}")
 
@@ -107,7 +124,7 @@ def health_check():
 
     try:
         # Check RabbitMQ connection
-        connection = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_URL))
+        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
         connection.close()
         rabbitmq_status = "RabbitMQ connection successful."
     except pika.exceptions.AMQPConnectionError as e:

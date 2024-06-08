@@ -25,6 +25,23 @@ def send_change_request(coin_denominations, purchase_amount, tender_amount):
 
     connection.close()
 
+def get_user_input():
+    try:
+        coin_denominations = input("Enter coin denominations as a comma-separated list (e.g., 1,2,5,10): ")
+        coin_denominations = list(map(int, coin_denominations.split(',')))
+
+        purchase_amount = float(input("Enter purchase amount (e.g., 5.48): "))
+        tender_amount = float(input("Enter tender amount (e.g., 7.00): "))
+
+        return coin_denominations, purchase_amount, tender_amount
+    except ValueError as e:
+        print(f"Invalid input: {e}")
+        return None, None, None
+
 # Example usage
 if __name__ == "__main__":
-    send_change_request([1, 5, 10, 25], 1.35, 2.00)
+    coin_denominations, purchase_amount, tender_amount = get_user_input()
+    if coin_denominations is not None:
+        send_change_request(coin_denominations, purchase_amount, tender_amount)
+    else:
+        print("Failed to get valid inputs.")
