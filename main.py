@@ -9,8 +9,8 @@ from threading import Thread
 
 app = FastAPI()
 
-DATABASE_URL = "postgresql://user:password@postgresql.default.svc.cluster.local:5432/transactions"
-RABBITMQ_URL = "amqp://guest:guest@rabbitmq.default.svc.cluster.local:5672/"
+DATABASE_URL = os.getenv("DATABASE_URL")
+RABBITMQ_URL = os.getenv("RABBITMQ_URL")
 
 # Logger setup
 logging.basicConfig(level=logging.INFO)
