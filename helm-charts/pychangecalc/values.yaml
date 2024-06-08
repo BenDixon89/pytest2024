@@ -20,3 +20,7 @@ affinity: {}
 postgresql:
   auth:
     postgresqlPassword: ""
+
+rabbitmq:
+  auth:
+    rabbitmqPassword: ""

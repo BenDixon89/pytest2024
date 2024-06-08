@@ -85,7 +85,8 @@ jobs:
           helm upgrade --install pychangecalc helm-charts/pychangecalc --namespace default \
             --set image.repository=${{ env.DOCKERHUB_USERNAME }}/${{ env.CONTAINER_NAME }} \
             --set image.tag=${{ github.sha }} \
-            --set postgresql.auth.postgresqlPassword=${{ secrets.POSTGRESQL_PASSWORD }}
+            --set postgresql.auth.postgresqlPassword=${{ secrets.POSTGRESQL_PASSWORD }} \
+            --set rabbitmq.auth.rabbitmqPassword=${{ secrets.RABBITMQ_PASSWORD }}
 
       # Deploy Ingress using kubectl
       - name: Deploy Ingress
