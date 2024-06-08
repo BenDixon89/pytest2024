@@ -5,6 +5,7 @@ import psycopg2
 import pika
 import json
 import logging
+import os
 from threading import Thread
 
 app = FastAPI()
