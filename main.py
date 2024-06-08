@@ -10,7 +10,7 @@ from threading import Thread
 app = FastAPI()
 
 DATABASE_URL = "postgresql://username:password@postgresql.default.svc.cluster.local:5432/transactions"
-RABBITMQ_URL = "amqp://guest:guest@10.0.56.70:5672/"
+RABBITMQ_URL = "amqp://guest:guest@rabbitmq.default.svc.cluster.local:5672/"
 
 # Logger setup
 logging.basicConfig(level=logging.INFO)
@@ -71,7 +71,7 @@ def callback(ch, method, properties, body):
 # RabbitMQ setup
 def setup_rabbitmq():
     try:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_URL))
+        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
         channel = connection.channel()
         channel.queue_declare(queue='change_queue')
         channel.basic_consume(queue='change_queue', on_message_callback=callback, auto_ack=False)
