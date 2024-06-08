@@ -88,8 +88,3 @@ jobs:
             --set postgresql.auth.postgresqlPassword=${{ secrets.POSTGRESQL_PASSWORD }} \
             --set rabbitmq.auth.rabbitmqPassword=${{ secrets.RABBITMQ_PASSWORD }}
 
-      # Deploy Ingress using kubectl
-      - name: Deploy Ingress
-        run: |
-          kubectl apply -f deployment/ingress.yaml
-
