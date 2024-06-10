@@ -44,6 +44,24 @@ def calculate_change(coin_denominations, purchase_amount, tender_amount):
             change_needed -= coin
     return change
 
+# Database storage function
+def store_database(coin_denominations, purchase_amount, tender_amount, change):
+    try:
+        # Store transaction in database
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO transactions (coin_denominations, purchase_amount, tender_amount, change) VALUES (%s, %s, %s, %s)",
+            (json.dumps(coin_denominations), purchase_amount, tender_amount, json.dumps(change))
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        logger.info("Transaction successfully stored in the database.")
+        
+    except Exception as e:
+        logger.error(f"Error storing transaction in the database: {e}")
+
 # Publish to RabbitMQ
 def publish_to_rabbitmq(queue_name, message):
     try:
@@ -63,26 +81,13 @@ def callback(ch, method, properties, body):
     purchase_amount = data['purchase_amount']
     tender_amount = data['tender_amount']
     change = calculate_change(coin_denominations, purchase_amount, tender_amount)
-    
-    try:
-        # Store transaction in database
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO transactions (coin_denominations, purchase_amount, tender_amount, change) VALUES (%s, %s, %s, %s)",
-            (json.dumps(coin_denominations), purchase_amount, tender_amount, json.dumps(change))
-        )
-        conn.commit()
-        cur.close()
-        conn.close()
-        logger.info("Transaction successfully stored in the database.")
-        
-        # Publish calculated change to RabbitMQ
-        publish_to_rabbitmq('change_returned', {
-            'change': change
-        })
-    except Exception as e:
-        logger.error(f"Error storing transaction in the database: {e}")
+
+    store_database(coin_denominations, purchase_amount, tender_amount, change)
+
+    # Publish calculated change to RabbitMQ
+    publish_to_rabbitmq('change_returned', {
+        'change': change
+    })
 
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
@@ -109,6 +114,7 @@ def startup_event():
 @app.post("/calculate-change/")
 def calculate_change_endpoint(change_request: ChangeRequest):
     change = calculate_change(change_request.coin_denominations, change_request.purchase_amount, change_request.tender_amount)
+    store_database(change_request.coin_denominations, change_request.purchase_amount, change_request.tender_amount, change)
     return {"change": change}
 
 # Health check endpoint to verify connections

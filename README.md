@@ -57,9 +57,10 @@ Program exited after receiving the change.
 
 ### Backend Service API
 
-  **Endpoints**:
-    -   `POST /calculate-change/`: Accepts change calculation requests and returns the calculated change.
-    -   `GET /health`: Health check endpoint to verify database and RabbitMQ connections.
+**Endpoints**
+
+ - `POST /calculate-change/`: Accepts change calculation requests and returns the calculated change.
+ - `GET /health`: Health check endpoint to verify database and RabbitMQ connections.
 
 #### API Endpoints
 -   **Health Endpoint**: `http://4.158.27.163/health/`
