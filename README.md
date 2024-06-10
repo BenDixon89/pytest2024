@@ -86,14 +86,7 @@ The `calculate-change` endpoint is a POST endpoint that allows you to calculate 
 ##### Example Response
 ```json
 {
-    "change": [
-        50,
-        20,
-        5,
-        1,
-        1,
-        1
-    ]
+  "change": [50,20,5,1,1,1]
 }
 ```
 
