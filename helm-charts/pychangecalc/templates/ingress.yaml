@@ -6,12 +6,13 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - http:
+  - host: 20.162.131.60
+    http:
       paths:
       - path: /calculator
         pathType: Prefix
         backend:
           service:
-            name: pychangecalc-pychangecalc.default.svc.cluster.local
+            name: pychangecalc-pychangecalc
             port:
               number: 80
