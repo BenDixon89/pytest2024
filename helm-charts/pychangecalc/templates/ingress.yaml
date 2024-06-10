@@ -12,6 +12,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: pychangecalc-pychangecalc
+            name: pychangecalc-pychangecalc.default.svc.cluster.local
             port:
               number: 80
