@@ -35,7 +35,7 @@ The producer script sends change calculation requests to RabbitMQ and waits for 
 1.  Run the script:
     
 
-    `python producer.py` 
+    `python producer/producer.py` 
     
 2.  Enter the required inputs when prompted:
     
