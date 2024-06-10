@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pychangecalc-ingress
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /calculator
+        pathType: Prefix
+        backend:
+          service:
+            name: pychangecalc-pychangecalc
+            port:
+              number: 80
