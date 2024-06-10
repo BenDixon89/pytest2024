@@ -130,7 +130,7 @@ def health_check():
     except pika.exceptions.AMQPConnectionError as e:
         rabbitmq_status = f"RabbitMQ connection error: {e}"
 
-    return {"database": db_status, "rabbitmq": rabbitmq_status}
+    return {"calculation service":"Service running","database": db_status, "rabbitmq": rabbitmq_status}
 
 if __name__ == "__main__":
     # Start FastAPI application
