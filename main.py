@@ -7,6 +7,8 @@ import json
 import logging
 import os
 from threading import Thread
+from rabbitmq import setup_rabbitmq, callback, publish_to_rabbitmq
+from changecalc import calculate_change, get_db_connection, store_database
 
 app = FastAPI()
 
@@ -17,91 +19,12 @@ RABBITMQ_URL = os.getenv("RABBITMQ_URL")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Database connection
-def get_db_connection():
-    try:
-        conn = psycopg2.connect(DATABASE_URL)
-        logger.info("Successfully connected to the database.")
-        return conn
-    except psycopg2.OperationalError as e:
-        logger.error(f"Error connecting to the database: {e}")
-        raise
 
 # Model for the request
 class ChangeRequest(BaseModel):
     coin_denominations: List[int]
     purchase_amount: float
     tender_amount: float
-
-# Calculate change function
-def calculate_change(coin_denominations, purchase_amount, tender_amount):
-    change_needed = int(round((tender_amount - purchase_amount) * 100))
-    coin_denominations = sorted(coin_denominations, reverse=True)
-    change = []
-    for coin in coin_denominations:
-        while change_needed >= coin:
-            change.append(coin)
-            change_needed -= coin
-    return change
-
-# Database storage function
-def store_database(coin_denominations, purchase_amount, tender_amount, change):
-    try:
-        # Store transaction in database
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO transactions (coin_denominations, purchase_amount, tender_amount, change) VALUES (%s, %s, %s, %s)",
-            (json.dumps(coin_denominations), purchase_amount, tender_amount, json.dumps(change))
-        )
-        conn.commit()
-        cur.close()
-        conn.close()
-        logger.info("Transaction successfully stored in the database.")
-        
-    except Exception as e:
-        logger.error(f"Error storing transaction in the database: {e}")
-
-# Publish to RabbitMQ
-def publish_to_rabbitmq(queue_name, message):
-    try:
-        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
-        channel = connection.channel()
-        channel.queue_declare(queue=queue_name)
-        channel.basic_publish(exchange='', routing_key=queue_name, body=json.dumps(message))
-        connection.close()
-        logger.info(f"Message published to {queue_name}.")
-    except pika.exceptions.AMQPConnectionError as e:
-        logger.error(f"Error connecting to RabbitMQ for publishing: {e}")
-
-# RabbitMQ consumer callback
-def callback(ch, method, properties, body):
-    data = json.loads(body)
-    coin_denominations = data['coin_denominations']
-    purchase_amount = data['purchase_amount']
-    tender_amount = data['tender_amount']
-    change = calculate_change(coin_denominations, purchase_amount, tender_amount)
-
-    store_database(coin_denominations, purchase_amount, tender_amount, change)
-
-    # Publish calculated change to RabbitMQ
-    publish_to_rabbitmq('change_returned', {
-        'change': change
-    })
-
-    ch.basic_ack(delivery_tag=method.delivery_tag)
-
-# RabbitMQ setup
-def setup_rabbitmq():
-    try:
-        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
-        channel = connection.channel()
-        channel.queue_declare(queue='change_queue')
-        channel.basic_consume(queue='change_queue', on_message_callback=callback, auto_ack=False)
-        logger.info("Successfully connected to RabbitMQ and started consuming messages.")
-        channel.start_consuming()
-    except pika.exceptions.AMQPConnectionError as e:
-        logger.error(f"Error connecting to RabbitMQ: {e}")
 
 # Register the startup event to start the RabbitMQ consumer
 @app.on_event("startup")
@@ -116,6 +39,9 @@ def calculate_change_endpoint(change_request: ChangeRequest):
     change = calculate_change(change_request.coin_denominations, change_request.purchase_amount, change_request.tender_amount)
     store_database(change_request.coin_denominations, change_request.purchase_amount, change_request.tender_amount, change)
     return {"change": change}
+
+
+
 
 # Health check endpoint to verify connections
 @app.get("/health")
@@ -141,4 +67,4 @@ def health_check():
 if __name__ == "__main__":
     # Start FastAPI application
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=80)
+    uvicorn.run(app, host="0.0.0.0", port=8080)

@@ -87,3 +87,9 @@ jobs:
             --set image.tag=${{ github.sha }} \
             --set postgresql.auth.postgresqlPassword=${{ secrets.POSTGRESQL_PASSWORD }} \
             --set rabbitmq.auth.rabbitmqPassword=${{ secrets.RABBITMQ_PASSWORD }}
+
+      # Deploy Redis using Helm
+      - name: Deploy Redis
+        run: |
+          helm dependency build helm-charts/redis
+          helm upgrade --install redis helm-charts/redis --namespace default
